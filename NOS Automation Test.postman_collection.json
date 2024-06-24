@@ -1,0 +1,493 @@
+{
+	"info": {
+		"_postman_id": "48bae975-e209-468b-bd55-1d17ec6c3961",
+		"name": "NOS Automation Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33173976"
+	},
+	"item": [
+		{
+			"name": "1-Retrieve all users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/users?page=1&per_page=20",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"users"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "per_page",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2-Retrieve all Posts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/posts",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"posts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3-Retrieve all Comments",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://gorest.co.in/public/v2/comments",
+					"protocol": "https",
+					"host": [
+						"gorest",
+						"co",
+						"in"
+					],
+					"path": [
+						"public",
+						"v2",
+						"comments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4-Create a new user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"        const jsonData = pm.response.json();\r",
+							"\r",
+							"        console.log(jsonData.id);\r",
+							"        console.log(jsonData.name);\r",
+							"        console.log(jsonData.email);\r",
+							"        console.log(jsonData.gender);\r",
+							"        console.log(jsonData.status);\r",
+							"\r",
+							"        console.log(jsonData);\r",
+							"\r",
+							"\r",
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([201, 202]);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Verify email address\", function () {\r",
+							"\r",
+							"  const collectionVariable = pm.collectionVariables.get(\"myEmailName\");\r",
+							"  console.log(collectionVariable);\r",
+							"\r",
+							" //verify email from this response body <---> email from the created in request body and assigned to \"collection variable\" which its name is myEmailName\r",
+							"   pm.expect(jsonData.email).to.be.eql(collectionVariable)\r",
+							"});\r",
+							"\r",
+							"pm.collectionVariables.set(\"userId\", jsonData.id);\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"//THIS IS FOR CREATING AN EMAIL WITH A REGULAR INCREMENTING NUMBER:\r",
+							"\r",
+							"let currentEmailNum = pm.collectionVariables.get(\"currentNumberForEmail\");\r",
+							"console.log(\"prescript currentEmailNum : \"+currentEmailNum)\r",
+							"\r",
+							"//Creating a NUMBER and want to increment it one-by one by adding in order to create an dynamic email\r",
+							"\r",
+							"if(currentEmailNum){\r",
+							" currentEmailNum++ //increment\r",
+							"}else{\r",
+							" currentEmailNum=1;//start from 1 , if you do not save any current currentNumberForEmail yet\r",
+							"}\r",
+							"\r",
+							"//my email template\r",
+							"\r",
+							"const myEmail =\"itsMyEmailll\"+currentEmailNum+\"@hotmail.com\"\r",
+							"console.log(\"prescript myEmail: \"+myEmail)\r",
+							"\r",
+							"//set the myEmailName for the request\r",
+							"pm.collectionVariables.set(\"myEmailName\", myEmail);\r",
+							"\r",
+							"//set the currentEmailNum for future requests\r",
+							"pm.collectionVariables.set(\"currentNumberForEmail\", currentEmailNum);\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Alice Alvez\",\r\n    \"email\": \"{{myEmailName}}\",\r\n    \"gender\": \"female\",\r\n    \"status\": \"active\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5-Retrieve single user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"console.log(jsonData);\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Verify user id\", function () {\r",
+							"    const userIDcoll = pm.collectionVariables.get(\"userId\");\r",
+							"    console.log(userIDcoll);\r",
+							"    //assertion for verifying \r",
+							"    pm.expect(userIDcoll).to.be.eql(jsonData.id);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}"
+					],
+					"query": [
+						{
+							"key": null,
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6-Create a todo of a user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"console.log(jsonData);\r",
+							"\r",
+							"pm.test(\"Successful POST request\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([201, 202]);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Verify the properties of the body\", function () {\r",
+							"    pm.expect(jsonData.status).to.be.eql(\"completed\");\r",
+							"    pm.expect(jsonData.due_on).to.contains(\"2024-07-02\");\r",
+							"    pm.expect(jsonData.title).to.contains(\"Culpo congregatio urbs crapula verus umerus.\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Verify id and user id\", function () {\r",
+							"    pm.expect(jsonData.id).to.be.a('number');\r",
+							"    pm.expect(jsonData.user_id).to.be.a('number');\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"Culpo congregatio urbs crapula verus umerus.\",\r\n    \"due_on\": \"2024-07-02T00:00:00.000+05:30\",\r\n    \"status\": \"completed\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}/todos",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}",
+						"todos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7-Retrieve a todo of a user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"console.log(jsonData);\r",
+							"\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/users/{{userId}}/todos",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"{{userId}}",
+						"todos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8-Retrieve all todos (Automation)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const jsonData = pm.response.json();\r",
+							"console.log(jsonData);\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// 3. Em automação, com resposta desta API gorest.co.in/public/v2/todos\r",
+							"\r",
+							"//    3.1. Aplica uma validação de schema ao resultado;\r",
+							"const schema = {\r",
+							"    \"type\": \"array\",\r",
+							"    \"items\": {\"type\": \"object\",\r",
+							"        \"properties\": {\r",
+							"            \"id\": {\"type\": \"integer\"},\r",
+							"            \"user_id\": {\"type\": \"integer\"},\r",
+							"            \"title\": {\"type\": \"string\"},\r",
+							"            \"due_on\": {\"type\": \"string\",\r",
+							"                       \"format\": \"date-time\"},\r",
+							"            \"status\": {\"type\": \"string\",\r",
+							"                       \"enum\": [\"pending\", \"completed\"]}\r",
+							"        },\r",
+							"        \"required\": [\"id\", \"user_id\", \"title\", \"due_on\", \"status\"]\r",
+							"    }\r",
+							"};\r",
+							"\r",
+							"pm.test('Validate schema', function () {\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"// 3.2. Valida se todos os resultados têm status completed:\r",
+							"pm.test(\"All todos are completed\", function () {\r",
+							"    jsonData.forEach(todo => {\r",
+							"        pm.expect(todo.status).to.eql(\"completed\");\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"// 3.3. Interpreta e valida o valor “due_on”\r",
+							"    const isValidDateTime = (date) => {\r",
+							"    const regex = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$/;\r",
+							"    return regex.test(date);\r",
+							"};\r",
+							"\r",
+							"pm.test(\"Validate due_on field\", function () {\r",
+							"    jsonData.forEach(todo => {\r",
+							"        pm.expect(isValidDateTime(todo.due_on)).to.be.true;\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/todos?page=1&per_page=100",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"todos"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "per_page",
+							"value": "100"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "155ca552389cc2497a3264a9275333c19576e46f81277d6d15a1f16ed38c175d",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://gorest.co.in/public/v2",
+			"type": "string"
+		},
+		{
+			"key": "myEmailName",
+			"value": ""
+		},
+		{
+			"key": "currentNumberForEmail",
+			"value": ""
+		},
+		{
+			"key": "userId",
+			"value": ""
+		}
+	]
+}
